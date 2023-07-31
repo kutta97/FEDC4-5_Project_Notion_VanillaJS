@@ -1,4 +1,5 @@
-import { initRouter } from '@utils/router';
+import Pathname from '@utils/pathname';
+import { history, initRouter } from '@utils/router';
 
 import Component from '@core/Component';
 
@@ -18,17 +19,21 @@ export default class App extends Component {
     this.$notionPage = new NotionPage(this.$target);
   }
 
-  getDocumentId() {
-    const { pathname } = window.location;
-    const [, , documentId] = pathname.split('/');
-
-    if (!documentId) return null;
-
-    return Number(documentId);
-  }
-
   route() {
-    const documentId = this.getDocumentId();
-    this.$notionPage.setState({ documentId });
+    const pathname = new Pathname(window.location.pathname);
+
+    if (pathname.isRoot()) {
+      this.$notionPage.setState({ documentId: null });
+      return;
+    }
+
+    if (pathname.isDocument()) {
+      const documentId = pathname.getDocumentId();
+
+      this.$notionPage.setState({ documentId });
+      return;
+    }
+
+    history.push('/');
   }
 }
