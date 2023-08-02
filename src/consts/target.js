@@ -15,6 +15,7 @@ export const SIDEBAR = {
   DOCUMENT_LIST: 'document-list',
   DOCUMENT_LIST_ITEM: {
     ROOT: 'document-list-item',
+    CHILD_GROUP: 'document-list-item-child-group',
     EMPTY: 'document-list-empty-item',
     TITLE: 'document-list-item-title',
     EXPAND_BUTTON: 'document-list-item-expand-button',

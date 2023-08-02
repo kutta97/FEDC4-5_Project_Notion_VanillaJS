@@ -1,13 +1,11 @@
 import { SIDEBAR } from '@consts/target';
 import URL from '@consts/url';
 
-import documentStorage from '@utils/localStorage/documentStorage';
-import sidebarStorage from '@utils/localStorage/sidebarStorage';
 import { history } from '@utils/router';
 
-import { createDocument, deleteDocument } from '@api/document';
-
 import Component from '@core/Component';
+
+import store from '@stores/store';
 
 import DocumentListItem from '@components/DocumentList/Item/DocumentListItem';
 
@@ -15,11 +13,7 @@ import './DocumentList.css';
 
 export default class DocumentList extends Component {
   setup() {
-    this.state = {
-      selectedDocumentId: null,
-      documentList: [],
-      expanded: {},
-    };
+    this.state = { documentList: [] };
   }
 
   initComponent() {
@@ -30,33 +24,28 @@ export default class DocumentList extends Component {
   }
 
   handleExpandButtonClick = (id) => {
-    const { expanded } = this.state;
-    expanded[id] = !expanded[id];
-
-    this.setState({ expanded });
+    store.toggleDocumentListItem(id);
+    this.setState();
   };
 
-  handleCreateIndsideButtonClick = async (id) => {
-    try {
-      const newDocument = await createDocument({ title: '', parent: id });
-      if (!newDocument) return;
-
+  handleCreateInsideButtonClick = async (id) => {
+    store.createDocument(id, async (newDocument) => {
       const documentPath = URL.getDocumentDetailPath(newDocument.id);
+      await store.getDocumentList();
       history.push(documentPath);
-    } catch (e) {
-      console.error(e);
-    }
+    });
   };
 
-  hanldeDeleteButtonClick = async (id) => {
-    documentStorage.removeDocumentItem(id);
-    await deleteDocument(id);
-    history.replace('/');
+  handleDeleteButtonClick = async (id) => {
+    store.deleteDocument(id, async () => {
+      await store.getDocumentList();
+      history.replace('/');
+    });
   };
 
   setEvent() {
     this.$documentList.addEventListener('click', ({ target }) => {
-      const $li = target.closest('li');
+      const $li = target.closest(`.${SIDEBAR.DOCUMENT_LIST_ITEM.ROOT}`);
 
       if (!$li) return;
       if ($li.className === SIDEBAR.DOCUMENT_LIST_ITEM.EMPTY) return;
@@ -79,7 +68,7 @@ export default class DocumentList extends Component {
       if (
         className === SIDEBAR.DOCUMENT_LIST_ITEM.BUTTON_CONTAINER.DELETE_BUTTON
       ) {
-        this.hanldeDeleteButtonClick(id);
+        this.handleDeleteButtonClick(id);
         return;
       }
 
@@ -87,7 +76,7 @@ export default class DocumentList extends Component {
         className ===
         SIDEBAR.DOCUMENT_LIST_ITEM.BUTTON_CONTAINER.CREATE_INSIDE_BUTTON
       ) {
-        this.handleCreateIndsideButtonClick(id);
+        this.handleCreateInsideButtonClick(id);
         return;
       }
 
@@ -95,45 +84,14 @@ export default class DocumentList extends Component {
     });
   }
 
-  setState(newState) {
-    const { documentList } = newState;
-
-    if (documentList) {
-      const { expandedState } = sidebarStorage.getSidebarDataItem();
-      documentList.forEach(({ id }) => {
-        expandedState[id] = expandedState[id] ?? false;
-      });
-
-      this.state = {
-        ...this.state,
-        expanded: expandedState,
-      };
-
-      sidebarStorage.setSidebarDataItem({ expandedState });
-    }
-
-    const { expanded } = newState;
-
-    if (expanded) {
-      sidebarStorage.setSidebarDataItem({ expandedState: expanded });
-    }
-
-    super.setState(newState);
-  }
-
   render() {
-    const { documentId, documentList, expanded } = this.state;
+    const { documentList } = this.state;
 
     this.$documentList.innerHTML = '';
-    documentList.forEach((doc) => {
+    documentList.forEach((documentItem) => {
       const $div = document.createElement('li');
 
-      new DocumentListItem($div, {
-        documentItem: doc,
-        parents: [],
-        selectedId: documentId,
-        expanded,
-      });
+      new DocumentListItem($div, { documentItem });
 
       this.$documentList.appendChild($div);
     });

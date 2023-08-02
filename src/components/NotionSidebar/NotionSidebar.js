@@ -7,19 +7,14 @@ import { createDocument } from '@api/document';
 
 import Component from '@core/Component';
 
+import store from '@stores/store';
+
 import DocumentList from '@components/DocumentList/DocumentList';
 
 import SidebarCreateButton from './CreateButton/SidebarCreateButton';
 import './NotionSidebar.css';
 
 export default class NotionSidebar extends Component {
-  setup() {
-    this.state = {
-      documentId: null,
-      documentList: [],
-    };
-  }
-
   initComponent() {
     this.$sidebar = document.createElement('nav');
     this.$sidebar.className = SIDEBAR.ROOT;
@@ -52,14 +47,9 @@ export default class NotionSidebar extends Component {
     history.push(documentPath);
   }
 
-  setState(nextState) {
-    super.setState(nextState);
+  setState() {
+    const { documentList } = store.state;
 
-    const { documentId, documentList } = this.state;
-
-    this.$documentList.setState({
-      selectedDocumentId: documentId,
-      documentList,
-    });
+    this.$documentList.setState({ documentList });
   }
 }
