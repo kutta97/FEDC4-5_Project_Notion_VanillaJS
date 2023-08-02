@@ -2,6 +2,8 @@ import { DOCUMENT } from '@consts/target';
 
 import Component from '@core/Component';
 
+import store from '@stores/store';
+
 import DocumentBottomNav from '@components/DocumentBottomNav/DocumentBottomNav';
 import NotionEditor from '@components/Editor/NotionEditor';
 import Header from '@components/Header/Header';
@@ -9,22 +11,6 @@ import Header from '@components/Header/Header';
 import './NotionDocument.css';
 
 export default class NotionDocument extends Component {
-  setup() {
-    this.state = {
-      isVisible: false,
-      documentData: {
-        id: null,
-        title: '',
-        createdAt: '',
-        updatedAt: '',
-        content: null,
-        documents: [],
-      },
-      currentPath: [],
-      childPaths: [],
-    };
-  }
-
   initComponent() {
     this.$document = document.createElement('div');
     this.$document.className = DOCUMENT.ROOT;
@@ -46,22 +32,22 @@ export default class NotionDocument extends Component {
     this.$bottomNav = new DocumentBottomNav(this.$document);
   }
 
-  setState(nextState) {
-    super.setState(nextState);
+  setState() {
+    super.setState();
+    const { documentId, document } = store.state;
 
-    const { documentData, currentPath, childPaths } = this.state;
+    if (documentId === null) return;
 
-    if (documentData.id === null) return;
+    const { id, title, content, path, documents } = document;
 
-    const { id, title, content } = documentData;
-
-    this.$header.setState({ path: currentPath });
+    this.$header.setState({ path });
     this.$editor.setState({ id, title, content });
-    this.$bottomNav.setState({ paths: childPaths });
+    this.$bottomNav.setState({ paths: documents });
   }
 
   render() {
-    const { isVisible } = this.state;
+    const { documentId } = store.state;
+    const isVisible = Boolean(documentId);
 
     this.$document.style.visibility = isVisible ? 'visible' : 'hidden';
   }

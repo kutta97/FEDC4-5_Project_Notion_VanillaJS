@@ -26,6 +26,7 @@ export default class App extends Component {
 
     if (pathname.isRoot()) {
       store.setDocumentId(null, () => {
+        store.clearDocument();
         this.setState();
       });
       return;

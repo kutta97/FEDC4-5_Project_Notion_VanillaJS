@@ -6,6 +6,7 @@ import {
   deleteDocument,
   getDocument,
   getDocumentList,
+  updateDocument,
 } from '@api/document';
 
 class Store {
@@ -40,15 +41,38 @@ class Store {
       const { id, title } = item;
       const documents = this.#toDocumentList(item.documents, [
         ...path,
-        { id, title },
+        { id, title: title || 'Untitled' },
       ]);
 
       return new DocumentListItem(id, title, documents, path);
     });
 
+  #getDocumentPath = (id) => {
+    const { documentList } = this.state;
+    const queue = [...documentList];
+
+    let document;
+    while (queue.length) {
+      document = queue.shift();
+      if (document.id === id) break;
+      queue.push(...document.documents);
+    }
+    return document.path;
+  };
+
   #toDocument = (object) => {
     const { id, title, content, documents, createdAt, updatedAt } = object;
-    return new Document(id, title, content, documents, createdAt, updatedAt);
+    const path = this.#getDocumentPath(id);
+
+    return new Document(
+      id,
+      title,
+      content,
+      documents,
+      path,
+      createdAt,
+      updatedAt
+    );
   };
 
   async getDocumentList(callback) {
@@ -93,6 +117,19 @@ class Store {
     }
   }
 
+  async updateDocument(doc, callback) {
+    try {
+      const updatedDocument = await updateDocument(doc.id, doc);
+
+      const document = this.#toDocument(updatedDocument);
+      this.setState({ document });
+
+      callback?.();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async deleteDocument(id, callback) {
     try {
       await deleteDocument(id);
@@ -101,6 +138,11 @@ class Store {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  clearDocument() {
+    const document = new Document();
+    this.setState({ document });
   }
 
   toggleDocumentListItem(documentId) {

@@ -1,10 +1,8 @@
 import { TARGET } from '@consts/target';
 
-import documentStorage from '@utils/localStorage/documentStorage';
-
-import { updateDocument } from '@api/document';
-
 import Component from '@core/Component';
+
+import store from '@stores/store';
 
 import NotionDocument from '@components/NotionDocument/NotionDocument';
 import NotionSidebar from '@components/NotionSidebar/NotionSidebar';
@@ -26,14 +24,13 @@ export default class NotionPage extends Component {
   }
 
   async onEdit(editorName, document) {
-    documentStorage.setDocumentItem(document);
-
-    const updatedDocument = await updateDocument(document.id, document);
-    if (editorName === 'title') {
-      this.fetchDocumentList();
-    }
-
-    this.$document.setState({ isVisible: true, documentData: updatedDocument });
+    store.updateDocument(document, async () => {
+      if (editorName === 'title') {
+        await store.getDocumentList();
+        this.$sidebar.setState();
+      }
+      this.$document.setState();
+    });
   }
 
   setState() {
