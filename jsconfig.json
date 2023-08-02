@@ -3,9 +3,11 @@
     "baseUrl": ".",
     "paths": {
       "@consts/*": ["./src/consts/*"],
+      "@data/*": ["./src/data/*"],
       "@api/*": ["./src/api/*"],
       "@utils/*": ["./src/utils/*"],
       "@core/*": ["./src/core/*"],
+      "@stores/*": ["./src/stores/*"],
       "@components/*": ["./src/components/*"],
       "@pages/*": ["./src/pages/*"],
       "@public/*": ["./public/*"]

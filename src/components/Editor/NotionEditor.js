@@ -47,8 +47,8 @@ export default class NotionEditor extends Component {
     }
   }
 
-  setState(newstate) {
-    super.setState(newstate);
+  setState(newState) {
+    super.setState(newState);
 
     const { title, content } = this.state;
     this.$title.setState({ title });

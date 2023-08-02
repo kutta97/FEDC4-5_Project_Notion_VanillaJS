@@ -1,11 +1,7 @@
 import { SIDEBAR } from '@consts/target';
 import URL from '@consts/url';
 
-import documentStorage from '@utils/localStorage/documentStorage';
-import sidebarStorage from '@utils/localStorage/sidebarStorage';
 import { history } from '@utils/router';
-
-import { createDocument, deleteDocument } from '@api/document';
 
 import Component from '@core/Component';
 
@@ -15,11 +11,7 @@ import './DocumentList.css';
 
 export default class DocumentList extends Component {
   setup() {
-    this.state = {
-      selectedDocumentId: null,
-      documentList: [],
-      expanded: {},
-    };
+    this.state = { documentList: [] };
   }
 
   initComponent() {
@@ -29,34 +21,9 @@ export default class DocumentList extends Component {
     this.$target.appendChild(this.$documentList);
   }
 
-  handleExpandButtonClick = (id) => {
-    const { expanded } = this.state;
-    expanded[id] = !expanded[id];
-
-    this.setState({ expanded });
-  };
-
-  handleCreateIndsideButtonClick = async (id) => {
-    try {
-      const newDocument = await createDocument({ title: '', parent: id });
-      if (!newDocument) return;
-
-      const documentPath = URL.getDocumentDetailPath(newDocument.id);
-      history.push(documentPath);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  hanldeDeleteButtonClick = async (id) => {
-    documentStorage.removeDocumentItem(id);
-    await deleteDocument(id);
-    history.replace('/');
-  };
-
   setEvent() {
     this.$documentList.addEventListener('click', ({ target }) => {
-      const $li = target.closest('li');
+      const $li = target.closest(`.${SIDEBAR.DOCUMENT_LIST_ITEM.ROOT}`);
 
       if (!$li) return;
       if ($li.className === SIDEBAR.DOCUMENT_LIST_ITEM.EMPTY) return;
@@ -71,15 +38,17 @@ export default class DocumentList extends Component {
       }
       const { className } = $button;
 
+      const { onExpand, onCreate, onDelete } = this.props;
+
       if (className === SIDEBAR.DOCUMENT_LIST_ITEM.EXPAND_BUTTON) {
-        this.handleExpandButtonClick(id);
+        onExpand(id);
         return;
       }
 
       if (
         className === SIDEBAR.DOCUMENT_LIST_ITEM.BUTTON_CONTAINER.DELETE_BUTTON
       ) {
-        this.hanldeDeleteButtonClick(id);
+        onDelete(id);
         return;
       }
 
@@ -87,7 +56,7 @@ export default class DocumentList extends Component {
         className ===
         SIDEBAR.DOCUMENT_LIST_ITEM.BUTTON_CONTAINER.CREATE_INSIDE_BUTTON
       ) {
-        this.handleCreateIndsideButtonClick(id);
+        onCreate(id);
         return;
       }
 
@@ -95,45 +64,14 @@ export default class DocumentList extends Component {
     });
   }
 
-  setState(newState) {
-    const { documentList } = newState;
-
-    if (documentList) {
-      const { expandedState } = sidebarStorage.getSidebarDataItem();
-      documentList.forEach(({ id }) => {
-        expandedState[id] = expandedState[id] ?? false;
-      });
-
-      this.state = {
-        ...this.state,
-        expanded: expandedState,
-      };
-
-      sidebarStorage.setSidebarDataItem({ expandedState });
-    }
-
-    const { expanded } = newState;
-
-    if (expanded) {
-      sidebarStorage.setSidebarDataItem({ expandedState: expanded });
-    }
-
-    super.setState(newState);
-  }
-
   render() {
-    const { documentId, documentList, expanded } = this.state;
+    const { documentList } = this.state;
 
     this.$documentList.innerHTML = '';
-    documentList.forEach((doc) => {
+    documentList.forEach((documentItem) => {
       const $div = document.createElement('li');
 
-      new DocumentListItem($div, {
-        documentItem: doc,
-        parents: [],
-        selectedId: documentId,
-        expanded,
-      });
+      new DocumentListItem($div, { documentItem });
 
       this.$documentList.appendChild($div);
     });

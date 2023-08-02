@@ -6,7 +6,7 @@ import './DocumentListEmptyItem.css';
 
 export default class DocumentListEmptyItem extends Component {
   initComponent() {
-    const { parents } = this.props;
+    const { path } = this.props;
 
     this.$documentListEmptyItem = document.createElement('li');
     this.$documentListEmptyItem.className = SIDEBAR.DOCUMENT_LIST_ITEM.EMPTY;
@@ -15,7 +15,7 @@ export default class DocumentListEmptyItem extends Component {
       <a class="${SIDEBAR.DOCUMENT_LIST_ITEM.TITLE}">No documents inside</a>
     `;
     this.$documentListEmptyItem.style.paddingLeft = `${
-      parents.length * 10 + 22
+      path.length * 10 + 22
     }px`;
 
     this.$target.appendChild(this.$documentListEmptyItem);

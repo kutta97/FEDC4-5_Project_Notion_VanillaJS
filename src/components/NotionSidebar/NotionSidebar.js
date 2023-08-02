@@ -3,9 +3,9 @@ import URL from '@consts/url';
 
 import { history } from '@utils/router';
 
-import { createDocument } from '@api/document';
-
 import Component from '@core/Component';
+
+import store from '@stores/store';
 
 import DocumentList from '@components/DocumentList/DocumentList';
 
@@ -13,13 +13,6 @@ import SidebarCreateButton from './CreateButton/SidebarCreateButton';
 import './NotionSidebar.css';
 
 export default class NotionSidebar extends Component {
-  setup() {
-    this.state = {
-      documentId: null,
-      documentList: [],
-    };
-  }
-
   initComponent() {
     this.$sidebar = document.createElement('nav');
     this.$sidebar.className = SIDEBAR.ROOT;
@@ -40,26 +33,36 @@ export default class NotionSidebar extends Component {
     `;
 
     this.$sidebar.appendChild($listContainer);
-
-    this.$documentList = new DocumentList($listContainer);
-  }
-
-  async handleCreateButtonClick() {
-    const newDocument = await createDocument({ title: '' });
-    if (!newDocument) return;
-
-    const documentPath = URL.getDocumentDetailPath(newDocument.id);
-    history.push(documentPath);
-  }
-
-  setState(nextState) {
-    super.setState(nextState);
-
-    const { documentId, documentList } = this.state;
-
-    this.$documentList.setState({
-      selectedDocumentId: documentId,
-      documentList,
+    this.$documentList = new DocumentList($listContainer, {
+      onExpand: this.handleExpandButtonClick.bind(this),
+      onCreate: this.handleCreateButtonClick.bind(this),
+      onDelete: this.handleDeleteButtonClick.bind(this),
     });
+  }
+
+  handleExpandButtonClick(id) {
+    store.toggleDocumentListItem(id);
+    this.setState();
+  }
+
+  handleCreateButtonClick(id = null) {
+    store.createDocument(id, async (newDocument) => {
+      const documentPath = URL.getDocumentDetailPath(newDocument.id);
+      await store.getDocumentList();
+      history.push(documentPath);
+    });
+  }
+
+  handleDeleteButtonClick(id) {
+    store.deleteDocument(id, async () => {
+      await store.getDocumentList();
+      history.replace('/');
+    });
+  }
+
+  setState() {
+    const { documentList } = store.state;
+
+    this.$documentList.setState({ documentList });
   }
 }
