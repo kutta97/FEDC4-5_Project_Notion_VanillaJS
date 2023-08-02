@@ -47,22 +47,22 @@ class Store {
       return new DocumentListItem(id, title, documents, path);
     });
 
-  #getDocumentPath = (id) => {
+  #getDocumentPath = (current) => {
     const { documentList } = this.state;
     const queue = [...documentList];
 
     let document;
     while (queue.length) {
       document = queue.shift();
-      if (document.id === id) break;
+      if (document.id === current.id) break;
       queue.push(...document.documents);
     }
-    return document.path;
+    return [...document.path, current];
   };
 
   #toDocument = (object) => {
     const { id, title, content, documents, createdAt, updatedAt } = object;
-    const path = this.#getDocumentPath(id);
+    const path = this.#getDocumentPath({ id, title });
 
     return new Document(
       id,
