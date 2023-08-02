@@ -38,7 +38,7 @@ export default class Header extends Component {
     this.$header.innerHTML = path
       .map(
         ({ id, title }) => `
-          <a data-link-id="${id}"><span>${title}</span></a>
+          <a data-link-id="${id}"><span>${title || 'Untitled'}</span></a>
         `
       )
       .join('<span>/</span>');

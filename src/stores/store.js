@@ -41,7 +41,7 @@ class Store {
       const { id, title } = item;
       const documents = this.#toDocumentList(item.documents, [
         ...path,
-        { id, title: title || 'Untitled' },
+        { id, title },
       ]);
 
       return new DocumentListItem(id, title, documents, path);
