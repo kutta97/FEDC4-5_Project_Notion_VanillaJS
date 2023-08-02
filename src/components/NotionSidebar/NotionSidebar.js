@@ -3,8 +3,6 @@ import URL from '@consts/url';
 
 import { history } from '@utils/router';
 
-import { createDocument } from '@api/document';
-
 import Component from '@core/Component';
 
 import store from '@stores/store';
@@ -35,16 +33,31 @@ export default class NotionSidebar extends Component {
     `;
 
     this.$sidebar.appendChild($listContainer);
-
-    this.$documentList = new DocumentList($listContainer);
+    this.$documentList = new DocumentList($listContainer, {
+      onExpand: this.handleExpandButtonClick.bind(this),
+      onCreate: this.handleCreateButtonClick.bind(this),
+      onDelete: this.handleDeleteButtonClick.bind(this),
+    });
   }
 
-  async handleCreateButtonClick() {
-    const newDocument = await createDocument({ title: '' });
-    if (!newDocument) return;
+  handleExpandButtonClick(id) {
+    store.toggleDocumentListItem(id);
+    this.setState();
+  }
 
-    const documentPath = URL.getDocumentDetailPath(newDocument.id);
-    history.push(documentPath);
+  handleCreateButtonClick(id = null) {
+    store.createDocument(id, async (newDocument) => {
+      const documentPath = URL.getDocumentDetailPath(newDocument.id);
+      await store.getDocumentList();
+      history.push(documentPath);
+    });
+  }
+
+  handleDeleteButtonClick(id) {
+    store.deleteDocument(id, async () => {
+      await store.getDocumentList();
+      history.replace('/');
+    });
   }
 
   setState() {

@@ -19,7 +19,6 @@ class Store {
   }
 
   async init() {
-    console.log('init');
     await this.getDocumentList();
   }
 
